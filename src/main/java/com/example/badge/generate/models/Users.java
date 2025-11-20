@@ -1,7 +1,11 @@
 package com.example.badge.generate.models;
 
+import com.example.badge.generate.roles.Roles;
 import jakarta.persistence.*;
+import lombok.NoArgsConstructor;
+import org.springframework.security.authorization.AuthoritiesAuthorizationManager;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -10,6 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "Users")
+@NoArgsConstructor
 public class Users  implements UserDetails {
 
     @Id
@@ -18,6 +23,7 @@ public class Users  implements UserDetails {
 
     private String email;
     private String password;
+    private Roles roles;
 
     public Users(String email, String password) {
         this.email = email;
@@ -26,7 +32,7 @@ public class Users  implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(new SimpleGrantedAuthority(roles.name()));
     }
 
     @Override
