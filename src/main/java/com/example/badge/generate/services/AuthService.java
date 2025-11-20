@@ -1,5 +1,6 @@
 package com.example.badge.generate.services;
 
+import com.example.badge.generate.config.SecurityConfig;
 import com.example.badge.generate.exceptions.UserAlreadyExistsException;
 import com.example.badge.generate.models.Users;
 import com.example.badge.generate.records.requests.RegisterRequest;
@@ -12,34 +13,42 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 public class AuthService implements UserDetailsService {
 
     private final UsersRepository usersRepository;
+    private final JwtService jwtService;
+    private final SecurityConfig securityConfig;
 
-    public AuthService(UsersRepository usersRepository) {
+    public AuthService(UsersRepository usersRepository, JwtService jwtService, SecurityConfig securityConfig) {
         this.usersRepository = usersRepository;
+        this.jwtService = jwtService;
+        this.securityConfig = securityConfig;
     }
 
     public RegisterResponse register(RegisterRequest requestRegister) {
 
         UserDetails userVerify = usersRepository.findByEmail(requestRegister.email());
 
-        if (userVerify.equals(requestRegister.email())) {
+        if (userVerify.getUsername().equals(requestRegister.email())) {
             throw new UserAlreadyExistsException("Usuário: " + requestRegister.email() + "já cadastrado.");
         }
 
-        Users newUsers = new Users(requestRegister.email(), requestRegister.password());
+        String encodedPassword = securityConfig.passwordEncoder().encode(requestRegister.password());
+
+        Users newUsers = new Users(requestRegister.email(), encodedPassword);
         usersRepository.save(newUsers);
 
-        //generated token
-        //generated bearer
-        //return jwt para user
-        String token = "Temporariamente"; //resta implementar generated token
-        String bearer = "Bearer temporário"; //resta implementar validação de jwt
+        String token = jwtService.generateToken(newUsers); //resta implementar generated token
+        String bearer = "Bearer "; //resta implementar validação de jwt
 
         return new RegisterResponse(token, bearer);
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return null;
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        UserDetails findUser = usersRepository.findByEmail(email);
+
+        if(findUser == null) {
+            throw new UsernameNotFoundException("Usuário não cadastrado ou digitado incorretamente.");
+        }
+        return findUser;
     }
 
 }

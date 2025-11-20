@@ -1,6 +1,8 @@
 package com.example.badge.generate.controllers;
 
+import com.example.badge.generate.records.requests.LoginRequest;
 import com.example.badge.generate.records.requests.RegisterRequest;
+import com.example.badge.generate.records.responses.LoginResponse;
 import com.example.badge.generate.records.responses.RegisterResponse;
 import com.example.badge.generate.services.AuthService;
 import jakarta.validation.Valid;
@@ -12,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -23,13 +25,13 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> registerUser(@RequestBody @Valid RegisterRequest requestRegister) {
-        RegisterResponse register = authService.register(requestRegister);
-        return ResponseEntity.status(HttpStatus.OK).build(register);
+        RegisterResponse regist = authService.register(requestRegister);
+        return ResponseEntity.status(HttpStatus.OK).build(regist);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<> loginUser() {
-
+    public ResponseEntity<LoginResponse> loginUser(@RequestBody @Valid LoginRequest requestLogin) {
+        authService.loadUserByUsername(requestLogin.email());
     }
 
 
